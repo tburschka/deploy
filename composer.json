@@ -1,0 +1,34 @@
+{
+    "name": "tburschka/deploy",
+    "description": "deploy",
+    "license": "MIT",
+    "keywords": [
+        "deploy"
+    ],
+    "homepage": "https://github.com/tburschka/deploy",
+    "require": {
+        "php": ">=5.3",
+        "symfony/console": "~2.6",
+        "symfony/config": "~2.6",
+        "tburschka/phpseclib-bridge": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*",
+        "pdepend/pdepend": "*",
+        "phploc/phploc": "*",
+        "phpmd/phpmd": "*",
+        "sebastian/phpcpd": "*",
+        "theseer/phpdox": "*",
+        "squizlabs/php_codesniffer": "1.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Deploy\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-0": {
+            "Deploy\\": "tests/"
+        }
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "algorithm": "SHA256",
+    "alias": "deploy.phar",
+    "chmod": "0755",
+    "directories": ["src"],
+    "blacklist": [],
+    "finder": [
+        {
+            "name": ["*.php"],
+            "exclude": ["tests", "build"],
+            "in": "vendor"
+        }
+    ],
+    "compactors": [
+      "Herrera\\Box\\Compactor\\Json",
+      "Herrera\\Box\\Compactor\\Php"
+    ],
+    "compression": "BZ2",
+    "main": "src/bootstrap.php",
+    "output": "deploy.phar",
+    "stub": true
+}
