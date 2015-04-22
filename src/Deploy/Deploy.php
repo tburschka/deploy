@@ -45,9 +45,8 @@ class Deploy extends Application
     protected function getDefaultCommands()
     {
         $defaultCommands = parent::getDefaultCommands();
-        $defaultCommands[] = new Command\CheckLocalFeaturesCommand();
-        $defaultCommands[] = new Command\CheckRemoteFeaturesCommand();
         $defaultCommands[] = new Command\PrepareCommand();
+        $defaultCommands[] = new Command\SyncCommand();
         return $defaultCommands;
     }
 

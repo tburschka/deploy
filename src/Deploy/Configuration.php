@@ -37,6 +37,7 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->append($this->getConnectionNode())
                 ->scalarNode('deploy_path')->isRequired()->defaultNull()->end()
+                ->scalarNode('deploy_file')->isRequired()->defaultNull()->end()
                 ->integerNode('keep_releases')->min(0)->defaultValue(3)->end()
                 ->append($this->getCommandsNode())
             ->end()
@@ -69,10 +70,10 @@ class Configuration implements ConfigurationInterface
         $node= $treeBuilder->root('commands');
         $node
             ->children()
-                ->arrayNode('pre_deploy')
+                ->arrayNode('pre_sync')
                     ->prototype('scalar')->end()
                 ->end()
-                ->arrayNode('post_deploy')
+                ->arrayNode('post_sync')
                     ->prototype('scalar')->end()
                 ->end()
             ->end()

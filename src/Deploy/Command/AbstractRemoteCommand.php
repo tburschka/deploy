@@ -13,7 +13,17 @@ abstract class AbstractRemoteCommand extends AbstractCommand
     /**
      * @var \Net_SSH2[]
      */
-    protected static $targetConnections = array();
+    protected static $targetSSH = array();
+
+    /**
+     * @var \Net_SCP[]
+     */
+    protected static $targetSCP = array();
+
+    /**
+     * @var array
+     */
+    protected static $exitCodes = [];
 
     protected function configure()
     {
@@ -66,13 +76,49 @@ abstract class AbstractRemoteCommand extends AbstractCommand
      */
     protected function remoteExec($command, $targets)
     {
-        $output = array();
+        $command = $this->appendExitCodeCommand($command);
+        $responses = array();
         $targets = is_array($targets) ? $targets : array($targets);
         foreach ($targets as $target) {
             $connection = $this->getTargetSSH($target);
-            $output[$target] = @$connection->exec($command);
+            $responses[$target] = $this->extractExitCodeResponse(@$connection->exec($command), $target);
         }
-        return $output;
+        return $responses;
+    }
+
+    /**
+     * @param string $command
+     * @return string
+     */
+    protected function appendExitCodeCommand($command)
+    {
+        while (';' === substr($command, -1)) {
+            $command = substr($command, 0, -1);
+        }
+        return $command . ';echo $?';
+    }
+
+    /**
+     * @param string $response
+     * @param string $target
+     * @return string
+     */
+    protected function extractExitCodeResponse($response, $target)
+    {
+        $end  = strrpos($response, "\n");
+        $start = strrpos(substr($response, 0, $end), "\n") + 1;
+        $exitCode = intval(trim(substr($response, $start, $end)));
+        $this->setLastExitCode($target, $exitCode);
+        return substr($response, 0, $start);
+    }
+
+    /**
+     * @param string $target
+     * @param integer $exitCode
+     */
+    protected function setLastExitCode($target, $exitCode)
+    {
+        self::$exitCodes[$target] = intval(trim($exitCode));
     }
 
     /**
@@ -81,7 +127,10 @@ abstract class AbstractRemoteCommand extends AbstractCommand
      */
     protected function getLastExitCode($target)
     {
-        return intval(trim($this->getTargetSSH($target)->exec('echo $?')));
+        if (!array_key_exists($target, self::$exitCodes)) {
+            self::$exitCodes[$target] = 0;
+        }
+        return self::$exitCodes[$target];
     }
 
     /**
@@ -90,29 +139,51 @@ abstract class AbstractRemoteCommand extends AbstractCommand
      */
     protected function getTargetSSH($target)
     {
-        if (!array_key_exists($target, self::$targetConnections)) {
-            $configuration = $this->getConfiguration();
-
-            $params = $configuration['targets'][$target]['connection'];
-            $bridge = new Bridge();
-            $bridge->setAuth(Bridge::AUTH_PASSWORD);
-            $bridge->setHostname($params['hostname']);
-            $bridge->setPort($params['port']);
-            $bridge->setTimeout($params['timeout']);
-            $bridge->setUsername($params['username']);
-            if (!empty($params['password'])) {
-                $bridge->setPassword($params['password']);
-            }
-            if (!empty($params['passwordfile'])) {
-                $bridge->setPasswordfile($params['passwordfile']);
-            }
-            if (!empty($params['keyfile'])) {
-                $bridge->setAuth(Bridge::AUTH_KEYFILE);
-                $bridge->setKeyfile($params['keyfile']);
-            }
-            self::$targetConnections[$target] = $bridge->ssh();
+        if (!array_key_exists($target, self::$targetSSH)) {
+            $bridge = $this->getTargetBride($target);
+            self::$targetSSH[$target] = $bridge->ssh();
         }
-        return self::$targetConnections[$target];
+        return self::$targetSSH[$target];
+    }
+
+    /**
+     * @param string $target
+     * @return \Net_SCP
+     */
+    protected function getTargetSCP($target)
+    {
+        if (!array_key_exists($target, self::$targetSCP)) {
+            $bridge = $this->getTargetBride($target);
+            self::$targetSCP[$target] = $bridge->scp();
+        }
+        return self::$targetSCP[$target];
+    }
+
+    /**
+     * @param string $target
+     * @return Bridge
+     */
+    protected function getTargetBride($target)
+    {
+        $configuration = $this->getConfiguration($target);
+        $params = $configuration['connection'];
+        $bridge = new Bridge();
+        $bridge->setAuth(Bridge::AUTH_PASSWORD);
+        $bridge->setHostname($params['hostname']);
+        $bridge->setPort($params['port']);
+        $bridge->setTimeout($params['timeout']);
+        $bridge->setUsername($params['username']);
+        if (!empty($params['password'])) {
+            $bridge->setPassword($params['password']);
+        }
+        if (!empty($params['passwordfile'])) {
+            $bridge->setPasswordfile($params['passwordfile']);
+        }
+        if (!empty($params['keyfile'])) {
+            $bridge->setAuth(Bridge::AUTH_KEYFILE);
+            $bridge->setKeyfile($params['keyfile']);
+        }
+        return $bridge;
     }
 
     /**
@@ -136,7 +207,6 @@ abstract class AbstractRemoteCommand extends AbstractCommand
         $file = sys_get_temp_dir() . '/' . $target;
         !file_exists($file) ?: unlink($file);
     }
-
 
     /**
      * @param string $target
