@@ -22,21 +22,27 @@ class PrepareCommand extends AbstractRemoteCommand
     {
         $targets = $input->getArgument('targets');
         $output->setVerbosity(OutputInterface::VERBOSITY_NORMAL);
+        $commands = [
+            'mkdir -p %s/releases',
+            'mkdir -p %s/logs',
+        ];
         foreach ($targets as $target) {
             $output->writeln('== target: ' . $target);
-            $command = 'mkdir -p ' . $this->getDeployPath($target) . 'releases';
-            $output->setVerbosity(OutputInterface::VERBOSITY_VERY_VERBOSE);
-            $output->writeln('== command: ' . $command);
-            $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
-            $response = $this->remoteExec($command, [$target]);
-            $exitCode = $this->getLastExitCode($target);
-            $output->setVerbosity(OutputInterface::VERBOSITY_NORMAL);
-            if (0 === $exitCode) {
-                $output->writeln('== OK');
-            } else {
-                $output->writeln('== ERROR');
-                $output->writeln($response);
-                return $exitCode;
+            foreach ($commands as $command) {
+                $command = sprintf($command, $this->getDeployPath($target));
+                $output->setVerbosity(OutputInterface::VERBOSITY_VERY_VERBOSE);
+                $output->writeln('== command: ' . $command);
+                $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
+                $response = $this->remoteExec($command, [$target]);
+                $exitCode = $this->getLastExitCode($target);
+                $output->setVerbosity(OutputInterface::VERBOSITY_NORMAL);
+                if (0 === $exitCode) {
+                    $output->writeln('== OK');
+                } else {
+                    $output->writeln('== ERROR');
+                    $output->writeln($response);
+                    return $exitCode;
+                }
             }
         }
         return 0;

@@ -215,6 +215,6 @@ abstract class AbstractRemoteCommand extends AbstractCommand
     protected function getDeployPath($target)
     {
         $deployPath = $this->getConfiguration($target)['deploy_path'];
-        return substr($deployPath, -1) === '/' ? $deployPath : $deployPath . '/';
+        return substr($deployPath, -1) === '/' ? substr($deployPath, 0, -1) : $deployPath;
     }
 }
