@@ -7,7 +7,7 @@
     ],
     "homepage": "https://github.com/tburschka/deploy",
     "require": {
-        "php": ">=5.3",
+        "php": ">=5.4",
         "symfony/console": "~2.6",
         "symfony/config": "~2.6",
         "tburschka/phpseclib-bridge": "dev-master"

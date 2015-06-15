@@ -38,7 +38,7 @@ class Deploy extends Application
     }
 
     /**
-     * Gets the default commands that should always be available.
+     * Get the default commands that should always be available.
      *
      * @return array An array of default Command instances
      */

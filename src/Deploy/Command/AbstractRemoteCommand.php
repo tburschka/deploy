@@ -55,10 +55,10 @@ abstract class AbstractRemoteCommand extends AbstractCommand
     /**
      * @param string $command
      * @param array $targets
-     * @param OutputInterface $output
      */
-    protected function remotePassthru($command, $targets, $output)
+    protected function remotePassthru($command, $targets)
     {
+        $output = $this->output;
         foreach ($targets as $target) {
             $connection = $this->getTargetSSH($target);
             $output->writeln($target);

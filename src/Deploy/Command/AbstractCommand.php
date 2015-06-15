@@ -24,7 +24,12 @@ abstract class AbstractCommand extends Command
     /**
      * @var InputInterface
      */
-    protected $_input;
+    protected $input;
+
+    /**
+     * @var OutputInterface
+     */
+    protected $output;
 
     /**
      * @param string $target
@@ -34,7 +39,7 @@ abstract class AbstractCommand extends Command
     {
         /* @var \Deploy\Deploy $application */
         $application = $this->getApplication();
-        $configuration = $application->getConfiguration($this->_input);
+        $configuration = $application->getConfiguration($this->input);
         if ($target) {
             if (!array_key_exists('targets', $configuration) || !array_key_exists($target, $configuration['targets'])) {
                 throw new \RuntimeException(sprintf('Invalid target: "%s"', $target));
@@ -54,7 +59,8 @@ abstract class AbstractCommand extends Command
      */
     protected function initialize($input, $output)
     {
-        $this->_input = $input;
+        $this->input = $input;
+        $this->output = $output;
     }
 
     /**
